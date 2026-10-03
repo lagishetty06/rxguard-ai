@@ -23,8 +23,6 @@ import {
   ScanEye,
   Camera,
   Send,
-  Cpu,
-  Fingerprint,
   PhoneCall,
   Activity,
 } from "lucide-react";
@@ -100,9 +98,11 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", file);
 
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
     try {
       if (activeTab === "prescription") {
-        const res = await fetch("http://127.0.0.1:8000/api/audit-prescription", {
+        const res = await fetch(`${API_BASE}/api/audit-prescription`, {
           method: "POST",
           body: formData,
         });
@@ -115,7 +115,7 @@ export default function Home() {
       } else {
         const expected = auditData ? auditData.medications.map((m) => m.name).join(", ") : "";
         const res = await fetch(
-          `http://127.0.0.1:8000/api/verify-loose-pill?expected_meds=${encodeURIComponent(expected)}`,
+          `${API_BASE}/api/verify-loose-pill?expected_meds=${encodeURIComponent(expected)}`,
           {
             method: "POST",
             body: formData,
@@ -233,7 +233,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 pb-24">
-      {/* Top Navbar */}
       <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -254,7 +253,6 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Language Selector */}
             <div className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-xl text-xs">
               <Languages className="w-3.5 h-3.5 text-blue-400" />
               <select
@@ -276,7 +274,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Mode Switcher Tabs */}
       <div className="max-w-6xl mx-auto px-4 mt-6">
         <div className="flex gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-xl w-fit">
           <button
@@ -298,11 +295,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main Grid */}
       <div className="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Upload + Telemetry & Caregiver Dispatch (Fills the blank space!) */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Ingestion Card */}
           <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
             <h2 className="text-base font-bold flex items-center gap-2 mb-1.5">
               {activeTab === "prescription" ? <UploadCloud className="w-5 h-5 text-blue-400" /> : <Camera className="w-5 h-5 text-teal-400" />}
@@ -362,7 +356,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Adherence Progress Bar */}
           {activeTab === "prescription" && auditData && totalSlots > 0 && (
             <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
@@ -380,7 +373,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* NEW FEATURE 1: CAREGIVER ALERT & EMERGENCY DISPATCH */}
           {auditData && (
             <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
@@ -418,7 +410,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* NEW FEATURE 2: CLINICAL TELEMETRY & REGULATORY AUDIT LOG */}
           <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Activity className="w-4 h-4 text-indigo-400" /> Clinical Safety Telemetry
@@ -448,7 +439,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Architectural Badge Card */}
           <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-900/40 space-y-1.5">
             <h3 className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-indigo-400" /> Deterministic Clinical Guardrails
@@ -459,9 +449,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right Column: Output & Intelligence */}
         <div className="lg:col-span-7 space-y-6">
-          {/* TAB 1: PRESCRIPTION VIEW */}
           {activeTab === "prescription" && (
             <>
               {!auditData && !loading && (
@@ -482,7 +470,6 @@ export default function Home() {
 
               {auditData && (
                 <div className="space-y-6">
-                  {/* Top Bar with Voice & Calendar Actions */}
                   <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-xl">
                     <div>
                       <div className="flex items-center gap-2">
@@ -515,7 +502,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* DETERMINISTIC SAFETY FLAGS */}
                   {auditData.clinical_safety_flags && auditData.clinical_safety_flags.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -547,7 +533,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Ambiguity Warnings */}
                   {auditData.unclear_instructions && auditData.unclear_instructions.length > 0 && (
                     <div className="space-y-2">
                       {auditData.unclear_instructions.map((unc, i) => (
@@ -562,7 +547,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* 4-Slot Interactive Timetable */}
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-400" /> Interactive Daily Timetable</span>
@@ -625,7 +609,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Clinical Dossier */}
                   <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Extracted Clinical Drug Dossier</h4>
                     <div className="divide-y divide-slate-800 text-xs">
@@ -646,7 +629,6 @@ export default function Home() {
             </>
           )}
 
-          {/* TAB 2: LOOSE PILL VERIFIER */}
           {activeTab === "pill_verifier" && (
             <div className="space-y-6">
               {!pillData && !loading && (
