@@ -89,7 +89,7 @@ export default function Home() {
     }
   };
 
-  const handleAudit = async () => {
+ const handleAudit = async () => {
     if (!file) return;
     setLoading(true);
     setErrorMsg(null);
@@ -98,32 +98,37 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    // Sanitize API URL: strip trailing slash and fallback directly to Render backend
+    const rawUrl = process.env.NEXT_PUBLIC_API_URL || "https://rxguard-ai-1.onrender.com";
+    const API_BASE = rawUrl.replace(/\/+$/, "");
 
     try {
       if (activeTab === "prescription") {
-        const res = await fetch(`${API_BASE}/api/audit-prescription`, {
+        const endpoint = `${API_BASE}/audit-prescription`;
+        console.log("Calling RxGuard endpoint:", endpoint);
+
+        const res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.detail || "Prescription analysis failed.");
+          throw new Error(errBody.detail || `Request failed with status ${res.status}`);
         }
         const data: PrescriptionAuditResponse = await res.json();
         setAuditData(data);
       } else {
         const expected = auditData ? auditData.medications.map((m) => m.name).join(", ") : "";
-        const res = await fetch(
-          `${API_BASE}/api/verify-loose-pill?expected_meds=${encodeURIComponent(expected)}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const endpoint = `${API_BASE}/api/verify-loose-pill?expected_meds=${encodeURIComponent(expected)}`;
+        console.log("Calling Pill Verifier endpoint:", endpoint);
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          body: formData,
+        });
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.detail || "Pill verification failed.");
+          throw new Error(errBody.detail || `Request failed with status ${res.status}`);
         }
         const data: PillVerificationResponse = await res.json();
         setPillData(data);
