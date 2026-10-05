@@ -98,19 +98,18 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", file);
 
-    // Sanitize API URL: strip trailing slash and fallback directly to Render backend
-    const rawUrl = process.env.NEXT_PUBLIC_API_URL || "https://rxguard-ai-1.onrender.com";
-    const API_BASE = rawUrl.replace(/\/+$/, "");
+    const API_BASE = "https://rxguard-ai-1.onrender.com";
 
     try {
       if (activeTab === "prescription") {
         const endpoint = `${API_BASE}/audit-prescription`;
-        console.log("Calling RxGuard endpoint:", endpoint);
+        console.log("Calling endpoint:", endpoint);
 
         const res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
+
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
           throw new Error(errBody.detail || `Request failed with status ${res.status}`);
@@ -120,12 +119,13 @@ export default function Home() {
       } else {
         const expected = auditData ? auditData.medications.map((m) => m.name).join(", ") : "";
         const endpoint = `${API_BASE}/api/verify-loose-pill?expected_meds=${encodeURIComponent(expected)}`;
-        console.log("Calling Pill Verifier endpoint:", endpoint);
+        console.log("Calling endpoint:", endpoint);
 
         const res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
+
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
           throw new Error(errBody.detail || `Request failed with status ${res.status}`);
@@ -139,7 +139,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
   const handleSpeak = () => {
     if (!("speechSynthesis" in window)) return;
 
