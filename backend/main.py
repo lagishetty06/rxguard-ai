@@ -192,6 +192,7 @@ def health():
     }
 
 @app.post("/api/audit-prescription", response_model=PrescriptionAuditResponse)
+@app.post("/audit-prescription", response_model=PrescriptionAuditResponse)
 async def audit_prescription(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are accepted")
