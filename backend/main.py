@@ -194,9 +194,11 @@ def health():
     }
 
 @app.post("/audit-prescription", response_model=PrescriptionAuditResponse)
+@app.post("/audit-prescription/", response_model=PrescriptionAuditResponse)
 @app.post("/api/audit-prescription", response_model=PrescriptionAuditResponse)
+@app.post("/api/audit-prescription/", response_model=PrescriptionAuditResponse)
 async def audit_prescription(file: UploadFile = File(...)):
-    if not file.content_type.startswith("image/"):
+    if file.content_type and not (file.content_type.startswith("image/") or file.content_type == "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only image files are accepted")
 
     image_bytes = await file.read()
@@ -257,9 +259,11 @@ async def audit_prescription(file: UploadFile = File(...)):
 
 
 @app.post("/verify-loose-pill", response_model=PillVerificationResponse)
+@app.post("/verify-loose-pill/", response_model=PillVerificationResponse)
 @app.post("/api/verify-loose-pill", response_model=PillVerificationResponse)
+@app.post("/api/verify-loose-pill/", response_model=PillVerificationResponse)
 async def verify_loose_pill(file: UploadFile = File(...), expected_meds: str = Query("")):
-    if not file.content_type.startswith("image/"):
+    if file.content_type and not (file.content_type.startswith("image/") or file.content_type == "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Please upload a valid image")
 
     image_bytes = await file.read()

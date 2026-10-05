@@ -100,37 +100,48 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", file);
 
+    const postToEndpoints = async (urls: string[]) => {
+      let lastError = "";
+      for (const url of urls) {
+        try {
+          console.log("Trying API target:", url);
+          const res = await fetch(url, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (res.ok) {
+            return await res.json();
+          }
+          const errBody = await res.json().catch(() => ({}));
+          lastError = errBody.detail || `HTTP ${res.status} from ${url}`;
+        } catch (e: unknown) {
+          lastError = e instanceof Error ? e.message : `Connection error targeting ${url}`;
+        }
+      }
+      throw new Error(lastError || "Backend service request failed.");
+    };
+
     try {
       if (activeTab === "prescription") {
-        const endpoint = `${API_BASE}/audit-prescription`;
-        console.log("Calling endpoint:", endpoint);
-
-        const res = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.detail || `Request failed with status ${res.status}`);
-        }
-        const data: PrescriptionAuditResponse = await res.json();
+        const targetUrls = [
+          `${API_BASE}/audit-prescription`,
+          `${API_BASE}/api/audit-prescription`,
+          `/audit-prescription`,
+          `/api/audit-prescription`
+        ];
+        const data: PrescriptionAuditResponse = await postToEndpoints(targetUrls);
         setAuditData(data);
       } else {
         const expected = auditData ? auditData.medications.map((m) => m.name).join(", ") : "";
-        const endpoint = `${API_BASE}/api/verify-loose-pill?expected_meds=${encodeURIComponent(expected)}`;
-        console.log("Calling endpoint:", endpoint);
-
-        const res = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.detail || `Request failed with status ${res.status}`);
-        }
-        const data: PillVerificationResponse = await res.json();
+        const queryStr = `?expected_meds=${encodeURIComponent(expected)}`;
+        const targetUrls = [
+          `${API_BASE}/api/verify-loose-pill${queryStr}`,
+          `${API_BASE}/verify-loose-pill${queryStr}`,
+          `/api/verify-loose-pill${queryStr}`,
+          `/verify-loose-pill${queryStr}`
+        ];
+        const data: PillVerificationResponse = await postToEndpoints(targetUrls);
         setPillData(data);
       }
     } catch (err: unknown) {
