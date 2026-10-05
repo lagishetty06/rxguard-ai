@@ -97,13 +97,15 @@ class PrescriptionAuditResponse(BaseModel):
     unclear_instructions: List[str] = []
     confidence_score: float = 0.98
 
-class PillIdentificationResponse(BaseModel):
+class PillVerificationResponse(BaseModel):
     detected_pill_name: str
     imprint_or_marking: Optional[str] = None
     color_and_shape: str
     matched_prescription_drug: Optional[str] = None
     match_status: str
     advice: str
+
+PillIdentificationResponse = PillVerificationResponse
 
 def clean_json_text(raw_text: str) -> str:
     cleaned = raw_text.strip()
@@ -191,8 +193,8 @@ def health():
         "supported_languages": ["en", "hi", "te", "es"]
     }
 
-@app.post("/api/audit-prescription", response_model=PrescriptionAuditResponse)
 @app.post("/audit-prescription", response_model=PrescriptionAuditResponse)
+@app.post("/api/audit-prescription", response_model=PrescriptionAuditResponse)
 async def audit_prescription(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are accepted")
@@ -254,7 +256,8 @@ async def audit_prescription(file: UploadFile = File(...)):
     raise HTTPException(status_code=500, detail=f"All models failed. Last error: {str(last_error)}")
 
 
-@app.post("/api/verify-loose-pill", response_model=PillIdentificationResponse)
+@app.post("/verify-loose-pill", response_model=PillVerificationResponse)
+@app.post("/api/verify-loose-pill", response_model=PillVerificationResponse)
 async def verify_loose_pill(file: UploadFile = File(...), expected_meds: str = Query("")):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Please upload a valid image")
@@ -289,7 +292,7 @@ async def verify_loose_pill(file: UploadFile = File(...), expected_meds: str = Q
             )
             raw_text = clean_json_text(response.text)
             parsed_dict = json.loads(raw_text)
-            return PillIdentificationResponse.model_validate(parsed_dict)
+            return PillVerificationResponse.model_validate(parsed_dict)
         except Exception:
             continue
 

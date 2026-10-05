@@ -62,6 +62,8 @@ interface PillVerificationResponse {
   advice: string;
 }
 
+const API_BASE = "https://rxguard-ai-1.onrender.com";
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"prescription" | "pill_verifier">("prescription");
   const [file, setFile] = useState<File | null>(null);
@@ -89,7 +91,7 @@ export default function Home() {
     }
   };
 
- const handleAudit = async () => {
+  const handleAudit = async () => {
     if (!file) return;
     setLoading(true);
     setErrorMsg(null);
@@ -97,8 +99,6 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append("file", file);
-
-    const API_BASE = "https://rxguard-ai-1.onrender.com";
 
     try {
       if (activeTab === "prescription") {
